@@ -58,22 +58,26 @@ class OutputFeedBackMode(ModeOfOperation):
         super().__init__(cipher, padding_mode, block_size)
         self.IV = IV or secrets.token_bytes(self.block_size >> 3)
 
-    def encrypt(self, plaintext: "typing.Iterable[str | bytes]"):
+    def encrypt(self, plaintext: "typing.Iterable[str | bytes]", debug = False):
         """ Encrypts multiple blocks of data using the OFB mode of operation.
 
         Args:
             plaintext (typing.Iterable[str | bytes]): Iterable yielding blocks of plaintext to encrypt.
+            debug (bool, optional): If true, outputs extra data to view the steps of the procedure.
 
         Yields:
             str | bytes: The ciphertext blocks.
         """
         # Pad the data to make the length an integral multiple of the block size.
         # By default this is a no-op for cipher and output feedback modes.
-        plaintext = self.padding_mode.pad(plaintext)
+        plaintext = self.padding_mode.pad(plaintext, debug)
 
         # Encrypt blocks following the OFB procedure:
         last_IV = self.IV
-        for plaintext_segment in plaintext:
+        for segment_data in plaintext:
+            if debug: plaintext_segment = segment_data['padded']
+            else    : plaintext_segment = segment_data
+
             # IV'_i = E(IV_i, K)
             encrypted_IV = self.cipher.encrypt(last_IV)
             # K'_i = MSB(IV'_i, s) = MSB(E(IV_i, K), s)
@@ -81,16 +85,24 @@ class OutputFeedBackMode(ModeOfOperation):
             # C_i = P_i ^ K'_i = P_i ^ MSB(E(IV_i, K), s)
             ciphertext_segment = xor(plaintext_segment, IV_msb)
 
-            yield ciphertext_segment
+            if debug:
+                segment_data.update({
+                    'encrypted': ciphertext_segment,
+                    'IV': last_IV, 'E_IV': encrypted_IV,
+                    'MSB_E_IV': IV_msb
+                })
+                yield segment_data
+            else: yield ciphertext_segment
 
             # IV_(i+1) = IV'_i = E(IV_i, K)
             last_IV = encrypted_IV
 
-    def decrypt(self, ciphertext: "typing.Iterable[str | bytes]"):
+    def decrypt(self, ciphertext: "typing.Iterable[str | bytes]", debug = False):
         """ Decrypts blocks encrypted using the OFB mode of operation.
 
         Args:
             ciphertext (typing.Iterable[str | bytes]): Iterable yielding blocks of ciphertext to decrypt.
+            debug (bool, optional): If true, outputs extra data to view the steps of the procedure.
 
         Yields:
             str | bytes: The plaintext blocks.
@@ -106,11 +118,18 @@ class OutputFeedBackMode(ModeOfOperation):
                 # P_i = C_i ^ K'_i = P_i ^ MSB(E(IV_i, K), s)
                 plaintext_segment = xor(ciphertext_segment, IV_msb)
 
-                yield plaintext_segment
+                if debug:
+                    yield {
+                        'encrypted': ciphertext_segment,
+                        'decrypted': plaintext_segment,
+                        'IV': last_IV, 'E_IV': encrypted_IV,
+                        'MSB_E_IV': IV_msb
+                    }
+                else: yield plaintext_segment
 
                 # IV_(i+1) = IV'_i = E(IV_i, K)
                 last_IV = encrypted_IV
 
         # Unpad the data to restore the original contents
         # By default this is a no-op for cipher and output feedback modes.
-        return self.padding_mode.unpad(plaintext_generator())
+        return self.padding_mode.unpad(plaintext_generator(), debug)

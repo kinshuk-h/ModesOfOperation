@@ -26,11 +26,22 @@ class PadNone(PaddingStrategy):
     """ A no-op padding strategy, for use in stream ciphers,
         where padding is not required as such. """
 
-    def pad(self, plaintext):
-        return plaintext
+    def pad(self, plaintext, debug = False):
+        if debug:
+            def plaintext_yielder():
+                for block in plaintext:
+                    yield { 'padded': block, 'original': block }
+            return plaintext_yielder()
+        else: return plaintext
 
-    def unpad(self, plaintext):
-        return plaintext
+    def unpad(self, plaintext, debug = False):
+        if debug:
+            def plaintext_yielder():
+                for block in plaintext:
+                    block['unpadded'] = block['decrypted']
+                    yield block
+            return plaintext_yielder()
+        else: return plaintext
 
 class PaddingMode(enum.Enum):
     """ An enumeration of common padding strategies. """
@@ -45,10 +56,10 @@ class PaddingMode(enum.Enum):
     def block_size(self, size):
         self.value.block_size = size
 
-    def pad(self, plaintext):
-        return self.value.pad(plaintext)
-    def unpad(self, plaintext):
-        return self.value.unpad(plaintext)
+    def pad(self, plaintext, debug=False):
+        return self.value.pad(plaintext, debug)
+    def unpad(self, plaintext, debug=False):
+        return self.value.unpad(plaintext, debug)
 
 __version__ = "1.0"
 __all__     = [ 'zeros', 'pkcs', 'PaddingMode' ]

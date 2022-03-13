@@ -84,9 +84,8 @@ object offering an encrypt and decrypt method.
 ## Usage:
 
 The following files & tools are provided for testing and working with the modules:
-- `demo.py`: Provides a demonstration of the working of the modes of operations, with simple visualizations
+- `main.py`: Provides a demonstration of the working of the modes of operations, with simple visualizations
              of the step-by-step procedure.
-- `main.py`: Provides a driver script to run the various modes of operation over input data.
 - `crypt.py`: Command-line script to encrypt files and/or input data
               using various ciphers and modes of operations.
 

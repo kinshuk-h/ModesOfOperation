@@ -26,11 +26,12 @@ class PadZeros(PaddingStrategy):
     def __init__(self):
         super().__init__()
 
-    def pad(self, plaintext: "typing.Iterable[str | bytes]"):
+    def pad(self, plaintext: "typing.Iterable[str | bytes]", debug = False):
         """ Pads the plaintext to complete the length of the last block.
 
         Args:
             plaintext (Iterable[str | bytes]): The plaintext to pad.
+            debug (bool, optional): If true, outputs extra data to view the steps of the procedure.
 
         Raises:
             AttributeError: Raised when the block_size property is not
@@ -56,21 +57,28 @@ class PadZeros(PaddingStrategy):
                 pad_block = (zero_byte * zeros_to_pad)
 
                 if zeros_to_pad == (self.block_size >> 3):
-                    yield block
-                    yield pad_block
+                    if debug:
+                        yield { 'original': block, 'padded': block }
+                        yield { 'original': pad_block[0:0], 'padded': pad_block }
+                    else:
+                        yield block
+                        yield pad_block
                 else:
-                    yield block + pad_block
+                    if debug: yield { 'original': block, 'padded': block + pad_block }
+                    else: yield block + pad_block
                 break
 
             else:
-                yield block
+                if debug: yield { 'original': block, 'padded': block }
+                else: yield block
                 block = next_block
 
-    def unpad(self, plaintext: "typing.Iterable[str | bytes]"):
+    def unpad(self, plaintext: "typing.Iterable[str | bytes]", debug = False):
         """ Unpads padded bytes from the plaintext to restore the original data.
 
         Args:
             plaintext (Iterable[str | bytes]): The padded plaintext.
+            debug (bool, optional): If true, outputs extra data to view the steps of the procedure.
 
         Yields:
             str | bytes: The plaintext without padding bytes.
@@ -81,10 +89,17 @@ class PadZeros(PaddingStrategy):
             next_block = next(plaintext, None)
 
             if next_block is None:
-                zero_byte = b'\0' if isinstance(block, bytes) else '\0'
-                yield block.rstrip(zero_byte)
+                if debug:
+                    zero_byte = b'\0' if isinstance(block['decrypted'], bytes) else '\0'
+                    block['unpadded'] = block['decrypted'].rstrip(zero_byte)
+                else:
+                    zero_byte = b'\0' if isinstance(block, bytes) else '\0'
+                    yield block.rstrip(zero_byte)
                 break
 
             else:
-                yield block
+                if debug:
+                    block['unpadded'] = block['decrypted']
+                    yield block
+                else: yield block
                 block = next_block

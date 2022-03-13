@@ -2,7 +2,7 @@
 ---
 
 This project implements the common modes of operation used along with block ciphers
-for general purpose transmission of encrypted data.
+for general purpose encryption of arbitrary data.
 
 ## Requirements:
 

@@ -23,8 +23,6 @@ if __name__ == "__main__":
 
     des_cipher = des.DES(base_key, False)
 
-    des.DES
-
     # padding_mode = padding.zeros.PadZeros()
     # padding_mode = padding.pkcs7.PadPKCS7()
     # padding_mode = padding.PadNone()

@@ -3,7 +3,7 @@
     des
     ~~~
 
-    This module provides an implementation of the DES block cipher, without the modes of operation.
+    This module provides an implementation of the DES & 3-DES block ciphers, without the modes of operation.
     The individual components used prior to the Feistel rounds and those used within each round are
     also exposed for use. The implementation follows the standard DES guidelines.
 
@@ -26,6 +26,7 @@
 
     - Classes:
         - DES: Implementation of the DES block cipher.
+        - TripleDES: Implementation of the 3-DES block cipher.
 
     Author: Kinshuk Vasisht
     Dated : 11/03/2022
@@ -355,3 +356,53 @@ class DES(BlockCipher):
         plaintext = INITIAL_PERMUTATION_BOX.decrypt(plaintext)
 
         return plaintext
+
+class TripleDES(BlockCipher):
+    """ Implementation the Triple DES Block cipher. The implementation follows the 3-DES specifications.
+        A total of two DES sized keys specified as a single object with 112 bits are used in this implementation.
+    """
+    BLOCK_SIZE = 64
+    KEY_SIZE   = 128 # Includes parity bits
+
+    def __init__(self, key: "str | bytes | list | tuple", validate_key = False):
+        """ Creates a new 3-DES cipher instance.
+
+        Args:
+            key (str | bytes | list | tuple): The key to use for encryption and decryption.
+            Must be a 128-bit data object where the 8th bit of every byte is a parity bit
+            for the previous 7, bits.
+
+            validate_key (bool, optional): Whether to validate the key, i.e., perform a parity check
+            prior to round key generation. Defaults to True.
+        """
+        super().__init__()
+
+        key_1 = key[ : (self.KEY_SIZE >> 4) ]
+        key_2 = key[ (self.KEY_SIZE >> 4) : ]
+
+        des_1 = DES(key_1, validate_key=validate_key)
+        des_2 = DES(key_2, validate_key=validate_key)
+
+        self.cipher = pipeline.Pipeline([ des_1, des_2, des_1 ])
+
+    def encrypt(self, plaintext: "str | bytes | list | tuple"):
+        """ Encrypts a given plaintext using a 3-DES cipher instance.
+
+        Args:
+            plaintext (int | str | bytes | list | tuple): The plaintext to encrypt.
+
+        Returns:
+            int | bytes | list: The encrypted ciphertext.
+        """
+        return self.cipher.encrypt(plaintext)
+
+    def decrypt(self, ciphertext: "str | bytes | list | tuple"):
+        """ Decrypts a given ciphertext using a 3-DES cipher instance with the same key as used during encryption.
+
+        Args:
+            plaintext (int | str | bytes | list | tuple): The ciphertext to decrypt.
+
+        Returns:
+            int | bytes | list: The decrypted plaintext.
+        """
+        return self.cipher.decrypt(ciphertext)

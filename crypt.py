@@ -43,7 +43,8 @@ import modes
 from cipher import des
 
 CIPHERS = {
-    'DES': des.DES
+    'DES': des.DES,
+    '3DES': des.TripleDES
 }
 
 MODE_OF_OPERATIONS = {
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '-B', '--stream-size', default = 8, type = int,
-        help = "Size of stream blocks for CFB and OFB mode of operations, in bits"
+        help = "size of stream blocks for CFB and OFB mode of operations, in bits"
     )
     parser.add_argument(
         '--no-save', dest = "save", action = "store_false",

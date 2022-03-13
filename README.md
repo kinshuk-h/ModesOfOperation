@@ -55,7 +55,7 @@ used for demonstration of the modes of operation.
         encryption and decryption.
   - `permutation`: Provides classes for permutation boxes, which can perform general mono-substitution of bits in a given input.
     - `resize`: Provides permutation boxes with a resizing effect, where the size of the data object is altered.
-    - `straight`: Provides an implementation of a straight P-Box, useful for generating permutations of a data object
+    - `straight`: Provides an implementation of a straight P-Box, useful for generating permutations of a data object.
   - `transforms`: Provides transformation components as ciphers.
     - `common`: Provides common ciphers which result in simple transformations, such as a One-Time pad cipher.
     - `pipeline`: Defines pipeline and combining transformations, which combine multiple ciphers together to form a complex cipher.
@@ -66,7 +66,7 @@ used for demonstration of the modes of operation.
 
 ### `modes`
 
-Module for modes of operation for block ciphers, where a cipher can be any
+Package for modes of operation for block ciphers, where a cipher can be any
 object offering an encrypt and decrypt method.
 
 - `padding`: Provides implementation of common padding strategies.
